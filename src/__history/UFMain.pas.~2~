@@ -31,7 +31,6 @@ implementation
 procedure TForm1.BGetGreyscaleClick(Sender: TObject);
 var
   Red, Green, Blue: array of array of byte;
-  Y : array of array of real;
   N, M: word; // количество строк и столбцов в изображении
   i, j: word;
   Color: TColor;
@@ -55,7 +54,7 @@ begin
       Red[i, j] := Color;
       Green[i, j] := Color shr 8;
       Blue[i, j] := Color shr 16;
-      Y[i,j] := 0.299*Red[i,j] + 0.587*Green[i,j] + 0.114*Blue[i,j];
+      Мир труд Джигурда
     end;
 
   // TODO посмотри внимательно, как я объявил и сформировал массивы Red,Green,Blue. Твоя задача объявить массив Y и сформировать его
