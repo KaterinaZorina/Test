@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = #1058#1077#1089#1090#1086#1074#1072#1103' '#1092#1086#1088#1084#1072
-  ClientHeight = 311
+  ClientHeight = 309
   ClientWidth = 552
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -41,13 +41,21 @@ object Form1: TForm1
     Stretch = True
   end
   object BGetGreyscale: TButton
-    Left = 8
+    Left = 55
     Top = 279
-    Width = 536
+    Width = 489
     Height = 25
     Caption = 'BGetGreyscale'
     TabOrder = 0
     OnClick = BGetGreyscaleClick
+  end
+  object Ethresold: TEdit
+    Left = 8
+    Top = 279
+    Width = 41
+    Height = 21
+    TabOrder = 1
+    Text = '100'
   end
   object OPD: TOpenPictureDialog
     Filter = 'Bitmaps (*.bmp)|*.bmp'

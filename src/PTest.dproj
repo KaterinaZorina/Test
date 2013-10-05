@@ -88,9 +88,8 @@
 			<DelphiCompile Include="$(MainSource)">
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
-			<DCCReference Include="..\..\..\projects\UFMain1v.pas">
+			<DCCReference Include="UFMain.pas">
 				<Form>Form1</Form>
-				<FormType>dfm</FormType>
 			</DCCReference>
 			<BuildConfiguration Include="Release">
 				<Key>Cfg_2</Key>

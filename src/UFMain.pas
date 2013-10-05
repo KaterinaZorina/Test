@@ -3,7 +3,9 @@ unit UFMain;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtDlgs, Vcl.ExtCtrls, Vcl.StdCtrls;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
+  Vcl.ExtDlgs, Vcl.ExtCtrls, Vcl.StdCtrls;
 
 type
   TForm1 = class(TForm)
@@ -11,6 +13,7 @@ type
     OPD: TOpenPictureDialog;
     BGetGreyscale: TButton;
     IResult: TImage;
+    Ethresold: TEdit;
     procedure FormActivate(Sender: TObject);
     procedure IOriginDblClick(Sender: TObject);
     procedure BGetGreyscaleClick(Sender: TObject);
@@ -23,7 +26,7 @@ type
 
 var
   Form1: TForm1;
-  BI : array of array of boolean;
+  BI: array of array of boolean;
   Thresold: byte;
 
 implementation
@@ -33,42 +36,43 @@ implementation
 // —обытие OnActivate выполн€етс€ в момент первой активации формы
 procedure TForm1.BGetGreyscaleClick(Sender: TObject);
 var
-  Red, Green, Blue: array of array of byte;
-  Y : array of array of real;
+  Y: real;
   N, M: word; // количество строк и столбцов в изображении
   i, j: word;
   Color: TColor;
   r, g, b: byte; // интенсивости составл€ющих в пиксле
+  BM: TBitMap;
 begin
   N := IOrigin.Picture.Bitmap.Height;
   M := IOrigin.Picture.Bitmap.Width;
-  SetLength(Red, N + 1); // +1 т.к. нумераци€ с 0
-  SetLength(Green, N + 1); // +1 т.к. нумераци€ с 0
-  SetLength(Blue, N + 1); // +1 т.к. нумераци€ с 0
+  SetLength(BI, N + 1);
   for i := 1 to N do
-  begin
-    SetLength(Red[i], M + 1);
-    SetLength(Green[i], M + 1);
-    SetLength(Blue[i], M + 1);
-  end;
+    SetLength(BI[i], M + 1);
+
   for i := 1 to N do
     for j := 1 to M do
     begin
       Color := IOrigin.Canvas.Pixels[j - 1, i - 1];
-      Red[i, j] := Color;
-      Green[i, j] := Color shr 8;
-      Blue[i, j] := Color shr 16;
-      Y[i,j] := 0.299*Red[i,j] + 0.587*Green[i,j] + 0.114*Blue[i,j];
-      Thresold:=20;
-      if Round(Y[i,j])<Thresold then
-      BI[i,j]:= false else BI[i,j]:=True;
+      r := Color;
+      g := Color shr 8;
+      b := Color shr 16;
+      Y := 0.299 * r + 0.587 * g + 0.114 * b;
+      Thresold := StrToInt(Ethresold.Text);
+      BI[i, j] := Y > Thresold;
     end;
 
-  // TODO посмотри внимательно, как € объ€вил и сформировал массивы Red,Green,Blue. “во€ задача объ€вить массив Y и сформировать его
-
+  BM := TBitMap.Create;
+  BM.Height := N;
+  BM.Width := M;
+  for i := 0 to N - 1 do
+    for j := 0 to M - 1 do
+      if BI[i + 1, j + 1] then
+        BM.Canvas.Pixels[j, i] := clBlack
+      else
+        BM.Canvas.Pixels[j, i] := clWhite;
+  IResult.Picture.Assign(BM);
+  BM.Free;
 end;
-
-
 
 procedure TForm1.FormActivate(Sender: TObject);
 begin

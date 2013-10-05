@@ -2,7 +2,7 @@ program PTest;
 
 uses
   Vcl.Forms,
-  UFMain1v in '..\..\..\projects\UFMain1v.pas' {Form1};
+  UFMain in 'UFMain.pas' {Form1};
 
 {$R *.res}
 
