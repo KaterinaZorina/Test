@@ -88,7 +88,7 @@
 			<DelphiCompile Include="$(MainSource)">
 				<MainSource>MainSource</MainSource>
 			</DelphiCompile>
-			<DCCReference Include="UFMain.pas">
+			<DCCReference Include="..\..\..\projects\UFMain1v.pas">
 				<Form>Form1</Form>
 				<FormType>dfm</FormType>
 			</DCCReference>

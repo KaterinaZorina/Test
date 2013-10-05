@@ -23,8 +23,6 @@ type
 
 var
   Form1: TForm1;
-  BI : array of array of boolean;
-  Thresold: byte;
 
 implementation
 
@@ -59,9 +57,6 @@ begin
       Green[i, j] := Color shr 8;
       Blue[i, j] := Color shr 16;
       Y[i,j] := 0.299*Red[i,j] + 0.587*Green[i,j] + 0.114*Blue[i,j];
-      Thresold:=20;
-      if Round(Y[i,j])<Thresold then
-      BI[i,j]:= false else BI[i,j]:=True;
     end;
 
   // TODO посмотри внимательно, как € объ€вил и сформировал массивы Red,Green,Blue. “во€ задача объ€вить массив Y и сформировать его

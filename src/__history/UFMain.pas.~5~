@@ -23,8 +23,6 @@ type
 
 var
   Form1: TForm1;
-  BI : array of array of boolean;
-  Thresold: byte;
 
 implementation
 
