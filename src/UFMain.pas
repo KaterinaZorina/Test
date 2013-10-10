@@ -16,6 +16,7 @@ type
     procedure IOriginDblClick(Sender: TObject);
     procedure BGetGreyscaleClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure IResultDblClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -107,28 +108,9 @@ begin
     IOrigin.Picture.LoadFromFile(OPD.FileName);
 end;
 
-{ procedure Marks(BI: array of array of boolean; Labels: array of array of byte; i,j:word; L:byte);
-  begin
-  if BI[i, j] and (Labels[i,j]=0) then
-  begin
-  labels[i,j]:= L;
-  if (i > 0) then
-  Marks(BI, labels, i - 1, j, L);
-  if i < (M - 1) then
-  Marks(BI, labels, i + 1, j, L);
-  if (j > 0) then
-  Marks(BI, labels, i, j - 1, L);
-  if j < (N - 1) then
-  Marks(BI, labels, i, j + 1, L);
-  if (i>0) and (j>0)  then
-  Marks(BI, labels, i-1, j-1, L);
-  if (i< M-1) and (j< N-1) then
-  Marks(BI, labels, i+1, j+1, L);
-  if (i>0) and (j<N-1)  then
-  Marks(BI, labels, i-1, j+1, L);
-  if (i<M-1) and (j>0)  then
-  Marks(BI, labels, i+1, j-1, L);
-  end;
-  end; }
+procedure TForm1.IResultDblClick(Sender: TObject);
+begin
+  IResult.Picture.SaveToFile('IResult.bmp');
+end;
 
 end.

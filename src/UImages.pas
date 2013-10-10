@@ -41,7 +41,7 @@ var
   I, j: word;
 begin
   SetLength(Plane, N + 1);
-  for I := 1 to N + 1 do
+  for I := 1 to N do
     SetLength(Plane[I], M + 1);
   for I := 1 to N do
     for j := 1 to M do
@@ -53,7 +53,7 @@ var
   I, j: word;
 begin
   SetLength(Plane, N + 1);
-  for I := 1 to N + 1 do
+  for I := 1 to N do
     SetLength(Plane[I], M + 1);
   for I := 1 to N do
     for j := 1 to M do
@@ -98,7 +98,6 @@ var
   BM: TBitMap;
   I, j: word;
   Color: TColor;
-  R, G, B: byte;
 begin
   BM := TBitMap.Create();
   BM.LoadFromFile(FileName);
@@ -153,7 +152,7 @@ var
 
   procedure RecursiveMark(I, j, Mark: word);
   begin
-    if (I in [1 .. MarkedImg.N]) and (j in [1 .. MarkedImg.M]) and (MarkedImg.I[I, j] = 1) then
+    if (I >= 1) and (I <= MarkedImg.N) and (j >= 1) and (j <= MarkedImg.M) and (MarkedImg.I[I, j] = 1) then
     begin
       MarkedImg.I[I, j] := Mark;
       RecursiveMark(I - 1, j, Mark);

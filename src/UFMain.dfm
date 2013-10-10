@@ -39,6 +39,7 @@ object Form1: TForm1
     Proportional = True
     ShowHint = False
     Stretch = True
+    OnDblClick = IResultDblClick
   end
   object BGetGreyscale: TButton
     Left = 55
