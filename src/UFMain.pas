@@ -3,9 +3,7 @@ unit UFMain;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
-  System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.ExtDlgs, Vcl.ExtCtrls, Vcl.StdCtrls;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtDlgs, Vcl.ExtCtrls, Vcl.StdCtrls;
 
 type
   TForm1 = class(TForm)
@@ -26,103 +24,56 @@ type
 
 var
   Form1: TForm1;
-  BI: array of array of boolean;
-  MarkedImg: array of array of word;
-  Thresold: byte;
-  N, M: word;
 
 implementation
 
 {$R *.dfm}
 
-procedure RecursiveMark(i, j, Mark: word);
-begin
-  if (i in [1 .. N]) and (j in [1 .. M]) and (MarkedImg[i, j] = 1) then
-  begin
-    MarkedImg[i, j] := Mark;
-    RecursiveMark(i - 1, j, Mark);
-    RecursiveMark(i + 1, j, Mark);
-    RecursiveMark(i, j - 1, Mark);
-    RecursiveMark(i, j + 1, Mark);
-  end;
-end;
+uses
+  UImages;
 
 // Событие OnActivate выполняется в момент первой активации формы
 procedure TForm1.BGetGreyscaleClick(Sender: TObject);
 var
-  Y: real;
-  // N, M: word; // количество строк и столбцов в изображении
-  i, j: word;
-  Color: TColor;
-  r, g, b, l: byte; // интенсивости составляющих в пиксле
+  RGB: TRGBImage;
+  YIQ: TYIQImage;
+  BI: TBinaryImage;
+  MarkedImg: TMarkedImage;
   BM: TBitMap;
-  MarkInd: word;
+  i, j: word;
 begin
-  N := IOrigin.Picture.Bitmap.Height;
-  M := IOrigin.Picture.Bitmap.Width;
-  SetLength(BI, N + 1);
-  SetLength(MarkedImg, N + 1);
-  for i := 1 to N do
-  begin
-    SetLength(BI[i], M + 1);
-    SetLength(MarkedImg[i], M + 1);
-  end;
-
-  for i := 1 to N do
-    for j := 1 to M do
-    begin
-      Color := IOrigin.Canvas.Pixels[j - 1, i - 1];
-      r := Color;
-      g := Color shr 8;
-      b := Color shr 16;
-      Y := 0.299 * r + 0.587 * g + 0.114 * b;
-      Thresold := StrToInt(Ethresold.Text);
-      BI[i, j] := Y > Thresold;
-    end;
+  RGB := UImages.GetRGBImageFromFile(OPD.FileName);
+  YIQ := UImages.ConvertRGBToYIQ(RGB);
+  BI := UImages.ThresoldBinarization(YIQ.Y, YIQ.N, YIQ.M, strtoint(Ethresold.Text));
+  MarkedImg := MarkBinaryImage(BI);
 
   BM := TBitMap.Create;
-  BM.Height := N;
-  BM.Width := M;
-  for i := 0 to N - 1 do
-    for j := 0 to M - 1 do
-      if BI[i + 1, j + 1] then
+  BM.Height := MarkedImg.N;
+  BM.Width := MarkedImg.M;
+  for i := 0 to MarkedImg.N - 1 do
+    for j := 0 to MarkedImg.M - 1 do
+    begin
+      if MarkedImg.i[i + 1, j + 1] = 0 then
         BM.Canvas.Pixels[j, i] := clWhite
       else
-        BM.Canvas.Pixels[j, i] := clBlack;
-  IResult.Picture.Assign(BM);
-  BM.Free;
-
-  // Изначально у нас объекты переднего плана кодируются 1, фон - 0
-  for i := 1 to N do
-    for j := 1 to M do
-      MarkedImg[i, j] := byte(not BI[i, j]);
-
-  MarkInd := 1;
-  for i := 1 to N do
-    for j := 1 to M do
-      // Ищем пикселы со значением 1 (т.е. первую точку объекта)
-      if MarkedImg[i, j] = 1 then
-      begin
-        // Выбираем следующую метку
-        MarkInd := MarkInd + 1;
-        // Начиная с одной точки заливаем весь объект
-        RecursiveMark(i, j, MarkInd);
-      end;
-
-  BM := TBitMap.Create;
-  BM.Height := N;
-  BM.Width := M;
-  for i := 0 to N - 1 do
-    for j := 0 to M - 1 do
-      // В зависимоти от метки назначаем цвет, как ты понимаешь, тут только два цвета
-      case MarkedImg[i + 1, j + 1] of
-        2:
-          BM.Canvas.Pixels[j, i] := clGreen;
-        3:
-          BM.Canvas.Pixels[j, i] := clRed;
-      else
-        BM.Canvas.Pixels[j, i] := clWhite;
-      end;
+        case (MarkedImg.i[i + 1, j + 1] mod 15) + 1 of
+        1: BM.Canvas.Pixels[j, i] := clAqua;
+        2: BM.Canvas.Pixels[j, i] := clBlack;
+        3: BM.Canvas.Pixels[j, i] := clBlue;
+        4: BM.Canvas.Pixels[j, i] := clFuchsia;
+        5: BM.Canvas.Pixels[j, i] := clGray;
+        6: BM.Canvas.Pixels[j, i] := clGreen;
+        7: BM.Canvas.Pixels[j, i] := clLime;
+        8: BM.Canvas.Pixels[j, i] := clMaroon;
+        9: BM.Canvas.Pixels[j, i] := clNavy;
+        10: BM.Canvas.Pixels[j, i] := clOlive;
+        11: BM.Canvas.Pixels[j, i] := clPurple;
+        12: BM.Canvas.Pixels[j, i] := clRed;
+        13: BM.Canvas.Pixels[j, i] := clSilver;
+        14: BM.Canvas.Pixels[j, i] := clTeal;
+        15: BM.Canvas.Pixels[j, i] := clYellow;
+        end;
+    end;
   IResult.Picture.Assign(BM);
   BM.Free;
 end;
