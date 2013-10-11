@@ -9,14 +9,17 @@ type
   TForm1 = class(TForm)
     IOrigin: TImage;
     OPD: TOpenPictureDialog;
-    BGetGreyscale: TButton;
+    BMarkImage: TButton;
     IResult: TImage;
-    Ethresold: TEdit;
+    BShowMark: TButton;
+    LEThresold: TLabeledEdit;
+    LEMark: TLabeledEdit;
     procedure FormActivate(Sender: TObject);
     procedure IOriginDblClick(Sender: TObject);
-    procedure BGetGreyscaleClick(Sender: TObject);
+    procedure BMarkImageClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure IResultDblClick(Sender: TObject);
+    procedure BShowMarkClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -33,20 +36,22 @@ implementation
 uses
   UImages;
 
-// Событие OnActivate выполняется в момент первой активации формы
-procedure TForm1.BGetGreyscaleClick(Sender: TObject);
+var
+  MarkedImg: TMarkedImage;
+
+  // Событие OnActivate выполняется в момент первой активации формы
+procedure TForm1.BMarkImageClick(Sender: TObject);
 var
   RGB: TRGBImage;
   YIQ: TYIQImage;
   BI: TBinaryImage;
-  MarkedImg: TMarkedImage;
   BM: TBitMap;
   i, j: word;
 begin
   RGB := UImages.GetRGBImageFromFile(OPD.FileName);
   YIQ := UImages.ConvertRGBToYIQ(RGB);
-  BI := UImages.ThresoldBinarization(YIQ.Y, YIQ.N, YIQ.M, strtoint(Ethresold.Text));
-  MarkedImg := MarkBinaryImage(BI);
+  BI := UImages.ThresoldBinarization(YIQ.Y, YIQ.N, YIQ.M, strtoint(LEThresold.Text));
+  MarkedImg := MarkBinaryImage(BI, true, true);
 
   BM := TBitMap.Create;
   BM.Height := MarkedImg.N;
@@ -54,10 +59,10 @@ begin
   for i := 0 to MarkedImg.N - 1 do
     for j := 0 to MarkedImg.M - 1 do
     begin
-      if MarkedImg.i[i + 1, j + 1] = 0 then
+      if MarkedImg.Img[i + 1, j + 1] = 0 then
         BM.Canvas.Pixels[j, i] := clWhite
       else
-        case (MarkedImg.i[i + 1, j + 1] mod 15) + 1 of
+        case (MarkedImg.Img[i + 1, j + 1] mod 15) + 1 of
         1: BM.Canvas.Pixels[j, i] := clAqua;
         2: BM.Canvas.Pixels[j, i] := clBlack;
         3: BM.Canvas.Pixels[j, i] := clBlue;
@@ -74,6 +79,53 @@ begin
         14: BM.Canvas.Pixels[j, i] := clTeal;
         15: BM.Canvas.Pixels[j, i] := clYellow;
         end;
+    end;
+  IResult.Picture.Assign(BM);
+  BM.Free;
+end;
+
+procedure TForm1.BShowMarkClick(Sender: TObject);
+var
+  num: word;
+  i, j: word;
+  sr, er, sc, ec: word;
+  BI: UImages.TBinaryImage;
+  BM: TBitMap;
+begin
+  num := strtoint(LEMark.Text);
+  sr := MarkedImg.N;
+  sc := MarkedImg.M;
+  er := 1;
+  ec := 1;
+  for i := 1 to MarkedImg.N do
+    for j := 1 to MarkedImg.M do
+      if MarkedImg.Img[i, j] = num then
+      begin
+        if i < sr then
+          sr := i;
+        if i > er then
+          er := i;
+        if j < sc then
+          sc := j;
+        if j > ec then
+          ec := j;
+      end;
+  UImages.InitBinaryImage(BI, er - sr + 1 + 2, ec - sc + 1 + 2);
+  for i := 2 to BI.N - 1 do
+    for j := 2 to BI.M - 1 do
+      if MarkedImg.Img[sr + i - 2, sc + j - 2] <> 0 then
+        BI.Img[i, j] := 1;
+  Sleep(1);
+  BM := TBitMap.Create;
+  BM.Height := BI.N;
+  BM.Width := BI.M;
+  for i := 0 to BI.N - 1 do
+    for j := 0 to BI.M - 1 do
+    begin
+      if BI.Img[i + 1, j + 1] = 0 then
+        BM.Canvas.Pixels[j, i] := clWhite
+      else
+        BM.Canvas.Pixels[j, i] := clBlack;
     end;
   IResult.Picture.Assign(BM);
   BM.Free;

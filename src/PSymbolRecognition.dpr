@@ -1,4 +1,4 @@
-program PTest;
+program PSymbolRecognition;
 
 uses
   Vcl.Forms,

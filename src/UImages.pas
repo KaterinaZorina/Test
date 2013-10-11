@@ -13,23 +13,25 @@ type
 
   TYIQImage = record
     N, M: word;
-    Y, I, Q: TPlane;
+    Y, Img, Q: TPlane;
   end;
 
   TBinaryImage = record
     N, M: word;
-    I: TPlane;
+    Img: TPlane;
   end;
 
   TMarkedImage = record
     N, M: word;
-    I: TMarkedPlane;
+    Img: TMarkedPlane;
   end;
+
+procedure InitBinaryImage(var BinaryImg: TBinaryImage; N, M: word);
 
 function GetRGBImageFromFile(FileName: string): TRGBImage;
 function ConvertRGBToYIQ(RGBImg: TRGBImage): TYIQImage;
 function ThresoldBinarization(Plane: TPlane; N, M: word; Thresold: byte): TBinaryImage;
-function MarkBinaryImage(BI: TBinaryImage): TMarkedImage;
+function MarkBinaryImage(BI: TBinaryImage; hv, diag: boolean): TMarkedImage;
 
 implementation
 
@@ -38,26 +40,26 @@ uses
 
 procedure InitPlane(var Plane: TPlane; N, M: word);
 var
-  I, j: word;
+  i, j: word;
 begin
   SetLength(Plane, N + 1);
-  for I := 1 to N do
-    SetLength(Plane[I], M + 1);
-  for I := 1 to N do
+  for i := 1 to N do
+    SetLength(Plane[i], M + 1);
+  for i := 1 to N do
     for j := 1 to M do
-      Plane[I, j] := 0;
+      Plane[i, j] := 0;
 end;
 
 procedure InitMarkedPlane(var Plane: TMarkedPlane; N, M: word);
 var
-  I, j: word;
+  i, j: word;
 begin
   SetLength(Plane, N + 1);
-  for I := 1 to N do
-    SetLength(Plane[I], M + 1);
-  for I := 1 to N do
+  for i := 1 to N do
+    SetLength(Plane[i], M + 1);
+  for i := 1 to N do
     for j := 1 to M do
-      Plane[I, j] := 0;
+      Plane[i, j] := 0;
 end;
 
 procedure InitRGBImage(var RGBImg: TRGBImage; N, M: word);
@@ -74,7 +76,7 @@ begin
   YIQImg.N := N;
   YIQImg.M := M;
   InitPlane(YIQImg.Y, N, M);
-  InitPlane(YIQImg.I, N, M);
+  InitPlane(YIQImg.Img, N, M);
   InitPlane(YIQImg.Q, N, M);
 end;
 
@@ -82,33 +84,33 @@ procedure InitBinaryImage(var BinaryImg: TBinaryImage; N, M: word);
 begin
   BinaryImg.N := N;
   BinaryImg.M := M;
-  InitPlane(BinaryImg.I, N, M);
+  InitPlane(BinaryImg.Img, N, M);
 end;
 
 procedure InitMarkedImage(var MarkedImg: TMarkedImage; N, M: word);
 begin
   MarkedImg.N := N;
   MarkedImg.M := M;
-  InitMarkedPlane(MarkedImg.I, N, M);
+  InitMarkedPlane(MarkedImg.Img, N, M);
 end;
 
 function GetRGBImageFromFile(FileName: string): TRGBImage;
 var
   RGBImg: TRGBImage;
   BM: TBitMap;
-  I, j: word;
+  i, j: word;
   Color: TColor;
 begin
   BM := TBitMap.Create();
   BM.LoadFromFile(FileName);
   InitRGBImage(RGBImg, BM.Height, BM.Width);
-  for I := 1 to RGBImg.N do
+  for i := 1 to RGBImg.N do
     for j := 1 to RGBImg.M do
     begin
-      Color := BM.Canvas.Pixels[j - 1, I - 1];
-      RGBImg.R[I, j] := Color;
-      RGBImg.G[I, j] := Color shr 8;
-      RGBImg.B[I, j] := Color shr 16;
+      Color := BM.Canvas.Pixels[j - 1, i - 1];
+      RGBImg.R[i, j] := Color;
+      RGBImg.G[i, j] := Color shr 8;
+      RGBImg.B[i, j] := Color shr 16;
     end;
   BM.Free;
   GetRGBImageFromFile := RGBImg;
@@ -117,16 +119,16 @@ end;
 function ConvertRGBToYIQ(RGBImg: TRGBImage): TYIQImage;
 var
   YIQImg: TYIQImage;
-  I, j: word;
+  i, j: word;
 begin
   InitYIQImage(YIQImg, RGBImg.N, RGBImg.M);
-  for I := 1 to YIQImg.N do
+  for i := 1 to YIQImg.N do
     for j := 1 to YIQImg.M do
     begin
-      YIQImg.Y[I, j] := round(0.299 * RGBImg.R[I, j] + 0.587 * RGBImg.G[I, j] + 0.114 * RGBImg.B[I, j]);
+      YIQImg.Y[i, j] := round(0.299 * RGBImg.R[i, j] + 0.587 * RGBImg.G[i, j] + 0.114 * RGBImg.B[i, j]);
       // TODO —формировать остальные каналы
-      YIQImg.I[I, j] := 0;
-      YIQImg.Q[I, j] := 0;
+      YIQImg.Img[i, j] := 0;
+      YIQImg.Q[i, j] := 0;
     end;
   ConvertRGBToYIQ := YIQImg;
 end;
@@ -134,57 +136,64 @@ end;
 function ThresoldBinarization(Plane: TPlane; N, M: word; Thresold: byte): TBinaryImage;
 var
   BinaryImg: TBinaryImage;
-  I, j: word;
+  i, j: word;
 begin
   InitBinaryImage(BinaryImg, N, M);
-  for I := 1 to N do
+  for i := 1 to N do
     for j := 1 to M do
-      if Plane[I, j] <= Thresold then
-        BinaryImg.I[I, j] := 1
+      if Plane[i, j] <= Thresold then
+        BinaryImg.Img[i, j] := 1
       else
-        BinaryImg.I[I, j] := 0;
+        BinaryImg.Img[i, j] := 0;
   ThresoldBinarization := BinaryImg;
 end;
 
-function MarkBinaryImage(BI: TBinaryImage): TMarkedImage;
+function MarkBinaryImage(BI: TBinaryImage; hv, diag: boolean): TMarkedImage;
 var
   MarkedImg: TMarkedImage;
 
-  procedure RecursiveMark(I, j, Mark: word);
+  procedure RecursiveMark(i, j, Mark: word);
   begin
-    if (I >= 1) and (I <= MarkedImg.N) and (j >= 1) and (j <= MarkedImg.M) and (MarkedImg.I[I, j] = 1) then
+    if (i >= 1) and (i <= MarkedImg.N) and (j >= 1) and (j <= MarkedImg.M) and (MarkedImg.Img[i, j] = 1) then
     begin
-      MarkedImg.I[I, j] := Mark;
-      RecursiveMark(I - 1, j, Mark);
-      RecursiveMark(I + 1, j, Mark);
-      RecursiveMark(I, j - 1, Mark);
-      RecursiveMark(I, j + 1, Mark);
+      if hv then
+      begin
+        MarkedImg.Img[i, j] := Mark;
+        RecursiveMark(i - 1, j, Mark);
+        RecursiveMark(i + 1, j, Mark);
+        RecursiveMark(i, j - 1, Mark);
+        RecursiveMark(i, j + 1, Mark);
+      end;
+      if diag then
+      begin
+        RecursiveMark(i - 1, j - 1, Mark);
+        RecursiveMark(i - 1, j + 1, Mark);
+        RecursiveMark(i + 1, j - 1, Mark);
+        RecursiveMark(i + 1, j + 1, Mark);
+      end;
     end;
   end;
 
 var
-  I, j: word;
+  i, j: word;
   Mark: word;
 begin
   InitMarkedImage(MarkedImg, BI.N, BI.M);
-  for I := 1 to MarkedImg.N do
+  for i := 1 to MarkedImg.N do
     for j := 1 to MarkedImg.M do
-      MarkedImg.I[I, j] := BI.I[I, j];
-
+      MarkedImg.Img[i, j] := BI.Img[i, j];
   Mark := 2;
-  for I := 1 to MarkedImg.N do
+  for i := 1 to MarkedImg.N do
     for j := 1 to MarkedImg.M do
-      if MarkedImg.I[I, j] = 1 then
+      if MarkedImg.Img[i, j] = 1 then
       begin
-        RecursiveMark(I, j, Mark);
+        RecursiveMark(i, j, Mark);
         Mark := Mark + 1;
       end;
-
-  for I := 1 to MarkedImg.N do
+  for i := 1 to MarkedImg.N do
     for j := 1 to MarkedImg.M do
-      if MarkedImg.I[I, j] > 1 then
-        MarkedImg.I[I, j] := MarkedImg.I[I, j] - 1;
-
+      if MarkedImg.Img[i, j] > 1 then
+        MarkedImg.Img[i, j] := MarkedImg.Img[i, j] - 1;
   MarkBinaryImage := MarkedImg;
 end;
 

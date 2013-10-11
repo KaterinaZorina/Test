@@ -1,9 +1,9 @@
 object Form1: TForm1
   Left = 0
   Top = 0
-  Caption = #1058#1077#1089#1090#1086#1074#1072#1103' '#1092#1086#1088#1084#1072
-  ClientHeight = 309
-  ClientWidth = 552
+  Caption = #1056#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1077' '#1089#1080#1084#1074#1086#1083#1086#1074
+  ClientHeight = 442
+  ClientWidth = 792
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,9 +19,9 @@ object Form1: TForm1
   object IOrigin: TImage
     Left = 8
     Top = 8
-    Width = 265
-    Height = 265
-    Hint = #1044#1074#1072#1078#1076#1099' '#1082#1083#1080#1082#1085#1080' '#1085#1072' '#1084#1085#1077
+    Width = 385
+    Height = 385
+    Hint = #1044#1074#1072#1078#1076#1099' '#1082#1083#1080#1082#1085#1080#1090#1077' '#1076#1083#1103' '#1079#1072#1075#1088#1091#1079#1082#1080' '#1080#1079#1086#1073#1088#1072#1078#1077#1085#1080#1103
     Center = True
     ParentShowHint = False
     Proportional = True
@@ -30,10 +30,10 @@ object Form1: TForm1
     OnDblClick = IOriginDblClick
   end
   object IResult: TImage
-    Left = 279
+    Left = 399
     Top = 8
-    Width = 265
-    Height = 265
+    Width = 383
+    Height = 385
     Center = True
     ParentShowHint = False
     Proportional = True
@@ -41,22 +41,45 @@ object Form1: TForm1
     Stretch = True
     OnDblClick = IResultDblClick
   end
-  object BGetGreyscale: TButton
+  object BMarkImage: TButton
     Left = 55
-    Top = 279
-    Width = 489
+    Top = 409
+    Width = 338
     Height = 25
-    Caption = 'BGetGreyscale'
+    Caption = #1052#1072#1088#1082#1080#1088#1086#1074#1082#1072' '#1080#1079#1086#1073#1088#1072#1078#1077#1085#1080#1103
     TabOrder = 0
-    OnClick = BGetGreyscaleClick
+    OnClick = BMarkImageClick
   end
-  object Ethresold: TEdit
+  object BShowMark: TButton
+    Left = 446
+    Top = 409
+    Width = 336
+    Height = 25
+    Caption = #1055#1086#1082#1072#1079#1072#1090#1100' '#1086#1073#1098#1077#1082#1090
+    TabOrder = 1
+    OnClick = BShowMarkClick
+  end
+  object LEThresold: TLabeledEdit
     Left = 8
-    Top = 279
+    Top = 411
     Width = 41
     Height = 21
-    TabOrder = 1
+    EditLabel.Width = 34
+    EditLabel.Height = 13
+    EditLabel.Caption = #1055#1086#1088#1086#1075':'
+    TabOrder = 2
     Text = '100'
+  end
+  object LEMark: TLabeledEdit
+    Left = 399
+    Top = 411
+    Width = 41
+    Height = 21
+    EditLabel.Width = 36
+    EditLabel.Height = 13
+    EditLabel.Caption = #1052#1077#1090#1082#1072':'
+    TabOrder = 3
+    Text = '1'
   end
   object OPD: TOpenPictureDialog
     Filter = 'Bitmaps (*.bmp)|*.bmp'
