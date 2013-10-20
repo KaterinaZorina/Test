@@ -1,4 +1,4 @@
-unit UImages;
+﻿unit UImages;
 
 interface
 
@@ -38,7 +38,7 @@ implementation
 uses
   VCL.Graphics;
 
-procedure InitPlane(var Plane: TPlane; N, M: word);
+procedure InitPlane(var Plane: TPlane; N, M: word);    // объявление массива, в котором хранятся данные о цвете картинки
 var
   i, j: word;
 begin
@@ -50,7 +50,7 @@ begin
       Plane[i, j] := 0;
 end;
 
-procedure InitMarkedPlane(var Plane: TMarkedPlane; N, M: word);
+procedure InitMarkedPlane(var Plane: TMarkedPlane; N, M: word); // объявление переменной, в кот.  будет хран. маркированной изобр.
 var
   i, j: word;
 begin
@@ -62,7 +62,7 @@ begin
       Plane[i, j] := 0;
 end;
 
-procedure InitRGBImage(var RGBImg: TRGBImage; N, M: word);
+procedure InitRGBImage(var RGBImg: TRGBImage; N, M: word);// объявление переменной, в которой будет храниться изображение
 begin
   RGBImg.N := N;
   RGBImg.M := M;
@@ -71,7 +71,7 @@ begin
   InitPlane(RGBImg.B, N, M);
 end;
 
-procedure InitYIQImage(var YIQImg: TYIQImage; N, M: word);
+procedure InitYIQImage(var YIQImg: TYIQImage; N, M: word);  // объявление переменной, в которой будет храниться изобр. оттенков серого
 begin
   YIQImg.N := N;
   YIQImg.M := M;
@@ -80,21 +80,21 @@ begin
   InitPlane(YIQImg.Q, N, M);
 end;
 
-procedure InitBinaryImage(var BinaryImg: TBinaryImage; N, M: word);
+procedure InitBinaryImage(var BinaryImg: TBinaryImage; N, M: word);    //объяв. переменной. в кот. хр. бинар. изобр.
 begin
   BinaryImg.N := N;
   BinaryImg.M := M;
   InitPlane(BinaryImg.Img, N, M);
 end;
 
-procedure InitMarkedImage(var MarkedImg: TMarkedImage; N, M: word);
+procedure InitMarkedImage(var MarkedImg: TMarkedImage; N, M: word);// объявление переменной, в кот.  будет хран. маркированной изобр. и инф. о его высоте и шир.
 begin
   MarkedImg.N := N;
   MarkedImg.M := M;
   InitMarkedPlane(MarkedImg.Img, N, M);
 end;
 
-function GetRGBImageFromFile(FileName: string): TRGBImage;
+function GetRGBImageFromFile(FileName: string): TRGBImage;// получение rgb картинки
 var
   RGBImg: TRGBImage;
   BM: TBitMap;
@@ -102,15 +102,15 @@ var
   Color: TColor;
 begin
   BM := TBitMap.Create();
-  BM.LoadFromFile(FileName);
-  InitRGBImage(RGBImg, BM.Height, BM.Width);
+  BM.LoadFromFile(FileName); // загружаем в "холст" BM выбранное изображение
+  InitRGBImage(RGBImg, BM.Height, BM.Width); //объявляем переменную для rgb картинки
   for i := 1 to RGBImg.N do
     for j := 1 to RGBImg.M do
     begin
       Color := BM.Canvas.Pixels[j - 1, i - 1];
-      RGBImg.R[i, j] := Color;
-      RGBImg.G[i, j] := Color shr 8;
-      RGBImg.B[i, j] := Color shr 16;
+      RGBImg.R[i, j] := Color;          // в каждом массиве
+      RGBImg.G[i, j] := Color shr 8;    // хранится данные о насыщ. определенного цвета
+      RGBImg.B[i, j] := Color shr 16;   //  в каждом пикселе
     end;
   BM.Free;
   GetRGBImageFromFile := RGBImg;
@@ -121,19 +121,19 @@ var
   YIQImg: TYIQImage;
   i, j: word;
 begin
-  InitYIQImage(YIQImg, RGBImg.N, RGBImg.M);
+  InitYIQImage(YIQImg, RGBImg.N, RGBImg.M); // объявляем переменную
   for i := 1 to YIQImg.N do
     for j := 1 to YIQImg.M do
     begin
       YIQImg.Y[i, j] := round(0.299 * RGBImg.R[i, j] + 0.587 * RGBImg.G[i, j] + 0.114 * RGBImg.B[i, j]);
-      // TODO ������������ ��������� ������
-      YIQImg.Img[i, j] := 0;
-      YIQImg.Q[i, j] := 0;
+      // TODO Сформировать остальные каналы. Тудушка готова
+      YIQImg.Img[i, j] := round(0.596 * RGBImg.R[i, j] - 0.274 * RGBImg.G[i, j] - 0.321 * RGBImg.B[i, j]);
+      YIQImg.Q[i, j] := round(0.211 * RGBImg.R[i, j] - 0.523 * RGBImg.G[i, j] + 0.311 * RGBImg.B[i, j]);
     end;
   ConvertRGBToYIQ := YIQImg;
 end;
 
-function ThresoldBinarization(Plane: TPlane; N, M: word; Thresold: byte): TBinaryImage;
+function ThresoldBinarization(Plane: TPlane; N, M: word; Thresold: byte): TBinaryImage; //бинаризация
 var
   BinaryImg: TBinaryImage;
   i, j: word;
@@ -141,7 +141,7 @@ begin
   InitBinaryImage(BinaryImg, N, M);
   for i := 1 to N do
     for j := 1 to M do
-      if Plane[i, j] <= Thresold then
+      if Plane[i, j] <= Thresold then   //в Plane будет канал Y
         BinaryImg.Img[i, j] := 1
       else
         BinaryImg.Img[i, j] := 0;
@@ -164,7 +164,7 @@ var
         RecursiveMark(i, j - 1, Mark);
         RecursiveMark(i, j + 1, Mark);
       end;
-      if diag then
+      if diag then  // условие на поиск смежности по диагоналям
       begin
         RecursiveMark(i - 1, j - 1, Mark);
         RecursiveMark(i - 1, j + 1, Mark);
