@@ -32,6 +32,7 @@ function GetRGBImageFromFile(FileName: string): TRGBImage;
 function ConvertRGBToYIQ(RGBImg: TRGBImage): TYIQImage;
 function ThresoldBinarization(Plane: TPlane; N, M: word; Thresold: byte): TBinaryImage;
 function MarkBinaryImage(BI: TBinaryImage; hv, diag: boolean): TMarkedImage;
+Function CentreOfGravity(BI: TBinaryImage) : TMarkedPlane;
 
 implementation
 
@@ -126,7 +127,6 @@ begin
     for j := 1 to YIQImg.M do
     begin
       YIQImg.Y[i, j] := round(0.299 * RGBImg.R[i, j] + 0.587 * RGBImg.G[i, j] + 0.114 * RGBImg.B[i, j]);
-      // TODO Сформировать остальные каналы. Тудушка готова
       YIQImg.Img[i, j] := round(0.596 * RGBImg.R[i, j] - 0.274 * RGBImg.G[i, j] - 0.321 * RGBImg.B[i, j]);
       YIQImg.Q[i, j] := round(0.211 * RGBImg.R[i, j] - 0.523 * RGBImg.G[i, j] + 0.311 * RGBImg.B[i, j]);
     end;
@@ -195,6 +195,48 @@ begin
       if MarkedImg.Img[i, j] > 1 then
         MarkedImg.Img[i, j] := MarkedImg.Img[i, j] - 1;
   MarkBinaryImage := MarkedImg;
+end;
+  // вот тут началось
+Function CentreOfGravity(BI: TBinaryImage) : TMarkedPlane ;
+var
+  SumX, SumY, Sum : word;
+  Centers: TMarkedPlane;
+
+  procedure RecursiveMark(i, j, Sum, SumX, SumY: word);
+  begin
+    if (i >= 1) and (i <= BI.N) and (j >= 1) and (j <= BI.M) and (BI.Img[i, j] = 1) then
+    begin
+        Sum := Sum + 1;
+        SumY:= SumY + j;
+        SumX:= SumX + i;
+        RecursiveMark(i - 1, j, Sum, SumX, SumY);
+        RecursiveMark(i + 1, j, Sum, SumX, SumY);
+        RecursiveMark(i, j - 1, Sum, SumX, SumY);
+        RecursiveMark(i, j + 1, Sum, SumX, SumY);
+        RecursiveMark(i - 1, j - 1, Sum, SumX, SumY);
+        RecursiveMark(i - 1, j + 1, Sum, SumX, SumY);
+        RecursiveMark(i + 1, j - 1, Sum, SumX, SumY);
+        RecursiveMark(i + 1, j + 1, Sum, SumX, SumY);
+    end;
+  end;
+
+var
+  i, j, k : word;
+begin
+ InitMarkedPlane( Centers, BI.N, 2);
+  for i := 1 to BI.N do
+    for j := 1 to BI.M do
+      begin
+      SumX:= 0; Sum:=0; SumY:=0; k:=0;
+      if BI.Img[i, j] = 1 then
+        begin
+        RecursiveMark(i, j, Sum, SumX, SumY);
+        k:=k+1;
+        Centers[k,1]:= (SumX mod Sum);
+        Centers[k,2]:= (SumY mod Sum);
+        end;
+      end;
+  CentreOfGravity:=Centers;
 end;
 
 end.
