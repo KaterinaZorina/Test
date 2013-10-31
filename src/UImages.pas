@@ -32,14 +32,15 @@ function GetRGBImageFromFile(FileName: string): TRGBImage;
 function ConvertRGBToYIQ(RGBImg: TRGBImage): TYIQImage;
 function ThresoldBinarization(Plane: TPlane; N, M: word; Thresold: byte): TBinaryImage;
 function MarkBinaryImage(BI: TBinaryImage; hv, diag: boolean): TMarkedImage;
-Function CentreOfGravity(BI: TBinaryImage) : TMarkedPlane;
+
+procedure CentreOfGravity(BI: TBinaryImage; var row, col: double);
 
 implementation
 
 uses
   VCL.Graphics;
 
-procedure InitPlane(var Plane: TPlane; N, M: word);    // объявление массива, в котором хранятся данные о цвете картинки
+procedure InitPlane(var Plane: TPlane; N, M: word); // объявление массива, в котором хранятся данные о цвете картинки
 var
   i, j: word;
 begin
@@ -63,7 +64,7 @@ begin
       Plane[i, j] := 0;
 end;
 
-procedure InitRGBImage(var RGBImg: TRGBImage; N, M: word);// объявление переменной, в которой будет храниться изображение
+procedure InitRGBImage(var RGBImg: TRGBImage; N, M: word); // объявление переменной, в которой будет храниться изображение
 begin
   RGBImg.N := N;
   RGBImg.M := M;
@@ -72,7 +73,7 @@ begin
   InitPlane(RGBImg.B, N, M);
 end;
 
-procedure InitYIQImage(var YIQImg: TYIQImage; N, M: word);  // объявление переменной, в которой будет храниться изобр. оттенков серого
+procedure InitYIQImage(var YIQImg: TYIQImage; N, M: word); // объявление переменной, в которой будет храниться изобр. оттенков серого
 begin
   YIQImg.N := N;
   YIQImg.M := M;
@@ -81,21 +82,21 @@ begin
   InitPlane(YIQImg.Q, N, M);
 end;
 
-procedure InitBinaryImage(var BinaryImg: TBinaryImage; N, M: word);    //объяв. переменной. в кот. хр. бинар. изобр.
+procedure InitBinaryImage(var BinaryImg: TBinaryImage; N, M: word); // объяв. переменной. в кот. хр. бинар. изобр.
 begin
   BinaryImg.N := N;
   BinaryImg.M := M;
   InitPlane(BinaryImg.Img, N, M);
 end;
 
-procedure InitMarkedImage(var MarkedImg: TMarkedImage; N, M: word);// объявление переменной, в кот.  будет хран. маркированной изобр. и инф. о его высоте и шир.
+procedure InitMarkedImage(var MarkedImg: TMarkedImage; N, M: word); // объявление переменной, в кот.  будет хран. маркированной изобр. и инф. о его высоте и шир.
 begin
   MarkedImg.N := N;
   MarkedImg.M := M;
   InitMarkedPlane(MarkedImg.Img, N, M);
 end;
 
-function GetRGBImageFromFile(FileName: string): TRGBImage;// получение rgb картинки
+function GetRGBImageFromFile(FileName: string): TRGBImage; // получение rgb картинки
 var
   RGBImg: TRGBImage;
   BM: TBitMap;
@@ -104,14 +105,14 @@ var
 begin
   BM := TBitMap.Create();
   BM.LoadFromFile(FileName); // загружаем в "холст" BM выбранное изображение
-  InitRGBImage(RGBImg, BM.Height, BM.Width); //объявляем переменную для rgb картинки
+  InitRGBImage(RGBImg, BM.Height, BM.Width); // объявляем переменную для rgb картинки
   for i := 1 to RGBImg.N do
     for j := 1 to RGBImg.M do
     begin
       Color := BM.Canvas.Pixels[j - 1, i - 1];
-      RGBImg.R[i, j] := Color;          // в каждом массиве
-      RGBImg.G[i, j] := Color shr 8;    // хранится данные о насыщ. определенного цвета
-      RGBImg.B[i, j] := Color shr 16;   //  в каждом пикселе
+      RGBImg.R[i, j] := Color; // в каждом массиве
+      RGBImg.G[i, j] := Color shr 8; // хранится данные о насыщ. определенного цвета
+      RGBImg.B[i, j] := Color shr 16; // в каждом пикселе
     end;
   BM.Free;
   GetRGBImageFromFile := RGBImg;
@@ -133,7 +134,7 @@ begin
   ConvertRGBToYIQ := YIQImg;
 end;
 
-function ThresoldBinarization(Plane: TPlane; N, M: word; Thresold: byte): TBinaryImage; //бинаризация
+function ThresoldBinarization(Plane: TPlane; N, M: word; Thresold: byte): TBinaryImage; // бинаризация
 var
   BinaryImg: TBinaryImage;
   i, j: word;
@@ -141,7 +142,7 @@ begin
   InitBinaryImage(BinaryImg, N, M);
   for i := 1 to N do
     for j := 1 to M do
-      if Plane[i, j] <= Thresold then   //в Plane будет канал Y
+      if Plane[i, j] <= Thresold then // в Plane будет канал Y
         BinaryImg.Img[i, j] := 1
       else
         BinaryImg.Img[i, j] := 0;
@@ -164,7 +165,7 @@ var
         RecursiveMark(i, j - 1, Mark);
         RecursiveMark(i, j + 1, Mark);
       end;
-      if diag then  // условие на поиск смежности по диагоналям
+      if diag then // условие на поиск смежности по диагоналям
       begin
         RecursiveMark(i - 1, j - 1, Mark);
         RecursiveMark(i - 1, j + 1, Mark);
@@ -196,47 +197,24 @@ begin
         MarkedImg.Img[i, j] := MarkedImg.Img[i, j] - 1;
   MarkBinaryImage := MarkedImg;
 end;
-  // вот тут началось
-Function CentreOfGravity(BI: TBinaryImage) : TMarkedPlane ;
-var
-  SumX, SumY, Sum : word;
-  Centers: TMarkedPlane;
 
-  procedure RecursiveMark(i, j, Sum, SumX, SumY: word);
-  begin
-    if (i >= 1) and (i <= BI.N) and (j >= 1) and (j <= BI.M) and (BI.Img[i, j] = 1) then
-    begin
-        Sum := Sum + 1;
-        SumY:= SumY + j;
-        SumX:= SumX + i;
-        RecursiveMark(i - 1, j, Sum, SumX, SumY);
-        RecursiveMark(i + 1, j, Sum, SumX, SumY);
-        RecursiveMark(i, j - 1, Sum, SumX, SumY);
-        RecursiveMark(i, j + 1, Sum, SumX, SumY);
-        RecursiveMark(i - 1, j - 1, Sum, SumX, SumY);
-        RecursiveMark(i - 1, j + 1, Sum, SumX, SumY);
-        RecursiveMark(i + 1, j - 1, Sum, SumX, SumY);
-        RecursiveMark(i + 1, j + 1, Sum, SumX, SumY);
-    end;
-  end;
-
+procedure CentreOfGravity(BI: TBinaryImage; var row, col: double);
 var
-  i, j, k : word;
+  i, j: word;
+  s: word;
 begin
- InitMarkedPlane( Centers, BI.N, 2);
+  s := 0;
+  row := 0;
+  col := 0;
   for i := 1 to BI.N do
     for j := 1 to BI.M do
-      begin
-      SumX:= 0; Sum:=0; SumY:=0; k:=0;
-      if BI.Img[i, j] = 1 then
-        begin
-        RecursiveMark(i, j, Sum, SumX, SumY);
-        k:=k+1;
-        Centers[k,1]:= (SumX mod Sum);
-        Centers[k,2]:= (SumY mod Sum);
-        end;
-      end;
-  CentreOfGravity:=Centers;
+    begin
+      s := s + BI.Img[i, j];
+      row := row + i * BI.Img[i, j];
+      col := col + j * BI.Img[i, j];
+    end;
+    row:=row/s;
+    col:=col/s;
 end;
 
 end.

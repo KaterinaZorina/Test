@@ -14,6 +14,8 @@ type
     BShowMark: TButton;
     LEThresold: TLabeledEdit;
     LEMark: TLabeledEdit;
+    Label1: TLabel;
+    Label2: TLabel;
     procedure FormActivate(Sender: TObject);
     procedure IOriginDblClick(Sender: TObject);
     procedure BMarkImageClick(Sender: TObject);
@@ -62,7 +64,7 @@ begin
       if MarkedImg.Img[i + 1, j + 1] = 0 then
         BM.Canvas.Pixels[j, i] := clWhite
       else
-        case (MarkedImg.Img[i + 1, j + 1] mod 15) + 1 {зачем mod 15 и +1?}  of
+        case (MarkedImg.Img[i + 1, j + 1] mod 15) + 1 { зачем mod 15 и +1? } of
         1: BM.Canvas.Pixels[j, i] := clAqua;
         2: BM.Canvas.Pixels[j, i] := clBlack;
         3: BM.Canvas.Pixels[j, i] := clBlue;
@@ -91,6 +93,7 @@ var
   sr, er, sc, ec: word;
   BI: UImages.TBinaryImage;
   BM: TBitMap;
+  r, c: double;
 begin
   num := strtoint(LEMark.Text);
   sr := MarkedImg.N;
@@ -112,9 +115,11 @@ begin
       end;
   UImages.InitBinaryImage(BI, er - sr + 1 + 2, ec - sc + 1 + 2); // переменная под вырезаемый объект на изображении
   for i := 2 to BI.N - 1 do
-    for j := 2  to BI.M - 1 do
-      if MarkedImg.Img[sr + i - 2, sc + j - 2] <> 0 then  // копируем объект в новую переменную
+    for j := 2 to BI.M - 1 do
+      if MarkedImg.Img[sr + i - 2, sc + j - 2] <> 0 then // копируем объект в новую переменную
         BI.Img[i, j] := 1;
+  UImages.CentreOfGravity(BI, r, c);
+
   Sleep(1);
   BM := TBitMap.Create;
   BM.Height := BI.N;
@@ -126,9 +131,13 @@ begin
         BM.Canvas.Pixels[j, i] := clWhite
       else
         BM.Canvas.Pixels[j, i] := clBlack;
+      if (round(r) = i + 1) or (round(c) = j + 1) then
+        BM.Canvas.Pixels[j, i] := clRed;
     end;
   IResult.Picture.Assign(BM);
   BM.Free;
+  Label1.Caption := floattostrf(r / BI.N, ffFixed, 3, 5);
+  Label2.Caption := floattostrf(c / BI.M, ffFixed, 3, 5);
 end;
 
 procedure TForm1.FormActivate(Sender: TObject);

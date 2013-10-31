@@ -3,7 +3,7 @@ object Form1: TForm1
   Top = 0
   Caption = #1056#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1077' '#1089#1080#1084#1074#1086#1083#1086#1074
   ClientHeight = 442
-  ClientWidth = 792
+  ClientWidth = 836
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -40,6 +40,20 @@ object Form1: TForm1
     ShowHint = False
     Stretch = True
     OnDblClick = IResultDblClick
+  end
+  object Label1: TLabel
+    Left = 788
+    Top = 8
+    Width = 31
+    Height = 13
+    Caption = 'Label1'
+  end
+  object Label2: TLabel
+    Left = 788
+    Top = 27
+    Width = 31
+    Height = 13
+    Caption = 'Label2'
   end
   object BMarkImage: TButton
     Left = 55
