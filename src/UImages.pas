@@ -32,13 +32,38 @@ function GetRGBImageFromFile(FileName: string): TRGBImage;
 function ConvertRGBToYIQ(RGBImg: TRGBImage): TYIQImage;
 function ThresoldBinarization(Plane: TPlane; N, M: word; Thresold: byte): TBinaryImage;
 function MarkBinaryImage(BI: TBinaryImage; hv, diag: boolean): TMarkedImage;
-
+function Skeleton(BI: TBinaryImage): TBinaryImage;
 procedure CentreOfGravity(BI: TBinaryImage; var row, col: double);
 
 implementation
 
 uses
   VCL.Graphics;
+
+function ImgOR(BI1, BI2: TBinaryImage): TBinaryImage;
+var
+  BIR: TBinaryImage;
+  I, j: word;
+begin
+  InitBinaryImage(BIR, BI1.N, BI1.M);
+  for I := 1 to BI1.N do
+    for j := 1 to BI1.M do
+      BIR.Img[I, j] := BI1.Img[I, j] or BI2.Img[I, j];
+  ImgOR := BIR;
+end;
+
+function ImgEquals(Img1, Img2: TBinaryImage): boolean;
+var
+  fl: boolean;
+  I, j: word;
+begin
+  fl := (Img1.N = Img2.N) and (Img1.M = Img2.M);
+  if fl then
+    for I := 1 to Img1.N do
+      for j := 1 to Img1.M do
+        fl := fl and (Img1.Img[I, j] = Img2.Img[I, j]);
+  ImgEquals := fl;
+end;
 
 procedure InitPlane(var Plane: TPlane; N, M: word); // объявление массива, в котором хранятся данные о цвете картинки
 var
@@ -215,6 +240,119 @@ begin
     end;
     row:=row/s;
     col:=col/s;
+end;
+
+function Skeleton(BI: TBinaryImage): TBinaryImage;
+  function p(BI: TBinaryImage; r, c: word; ind: byte): boolean;
+  var
+    res: boolean;
+  begin
+    res := false;
+    case ind of
+    0: res := BI.img[r, c];
+    1: res := BI.img[r - 1, c];
+    2: res := BI.img[r - 1, c + 1];
+    3: res := BI.img[r, c + 1];
+    4: res := BI.img[r + 1, c + 1];
+    5: res := BI.img[r + 1, c];
+    6: res := BI.img[r + 1, c - 1];
+    7: res := BI.img[r, c - 1];
+    8: res := BI.img[r - 1, c - 1];
+    end;
+    p := res;
+  end;
+
+  function NeighbourCount(BI: TBinaryImage; r, c: word): byte;
+  var
+    i: byte;
+    tmp: byte;
+  begin
+    tmp := 0;
+    for i := 1 to 8 do
+      tmp := tmp + word(p(BI, r, c, i));
+    NeighbourCount := tmp;
+  end;
+
+  function TransitionCount(BI: TBinaryImage; r, c: word): byte;
+  var
+    tmp, i: byte;
+  begin
+    tmp := 0;
+    for i := 1 to 7 do
+      if (not p(BI, r, c, i)) and (p(BI, r, c, i + 1)) then
+        tmp := tmp + 1;
+    if (not p(BI, r, c, 8)) and (p(BI, r, c, 1)) then
+      tmp := tmp + 1;
+    TransitionCount := tmp;
+  end;
+
+  function Kontur(BI: TBinaryImage): TBinaryImage;
+  var
+    i, j: word;
+    BIR: TBinaryImage;
+  begin
+    InitBinaryImage(BIR, BI.N, BI.M);
+    for i := 1 to BI.N do
+      for j := 1 to BI.M do
+        if BI.img[i, j]=1 then
+          if not(p(BI, i, j, 2) and p(BI, i, j, 3) and p(BI, i, j, 4) and p(BI, i, j, 5) and p(BI, i, j, 6) and p(BI, i, j, 7) and p(BI, i, j, 8)) then
+            BIR.img[i, j] := true;
+    Kontur := BIR;
+  end;
+
+  function Thin(BIR: TBinaryImage): TBinaryImage;
+  var
+    Border, NewBorder: TBinaryImage;
+    fl: boolean;
+    i, j: word;
+  begin
+    Border := Kontur(BIR);
+    NewBorder := ImgOR(Border, Border);
+    for i := 1 to Border.N do
+      for j := 1 to Border.M do
+        if Border.img[i, j]=1 then
+        begin
+          fl := true;
+          fl := fl and (NeighbourCount(BIR, i, j) in [2 .. 6]);
+          fl := fl and (TransitionCount(BIR, i, j) = 1);
+          fl := fl and ((p(BIR, i, j, 1) and p(BIR, i, j, 3) and p(BIR, i, j, 5)) = false);
+          fl := fl and ((p(BIR, i, j, 3) and p(BIR, i, j, 5) and p(BIR, i, j, 6)) = false);
+          if fl then
+            NewBorder.img[i, j] := false;
+        end;
+    for i := 1 to Border.N do
+      for j := 1 to Border.M do
+        if Border.img[i, j]=1 then
+          BIR.img[i, j] := NewBorder.img[i, j];
+    Border := Kontur(BIR);
+    NewBorder := ImgOR(Border, Border);
+    for i := 1 to Border.N do
+      for j := 1 to Border.M do
+        if Border.img[i, j]=1 then
+        begin
+          fl := true;
+          fl := fl and (NeighbourCount(BIR, i, j) in [2 .. 6]);
+          fl := fl and (TransitionCount(BIR, i, j) = 1);
+          fl := fl and ((p(BIR, i, j, 1) and p(BIR, i, j, 3) and p(BIR, i, j, 7)) = false);
+          fl := fl and ((p(BIR, i, j, 1) and p(BIR, i, j, 5) and p(BIR, i, j, 7)) = false);
+          if fl then
+            NewBorder.img[i, j] := false;
+        end;
+    for i := 1 to Border.N do
+      for j := 1 to Border.M do
+        if Border.img[i, j]=1 then
+          BIR.img[i, j] := NewBorder.img[i, j];
+    Thin := BIR;
+  end;
+
+var
+  ImgOld: TBinaryImage;
+begin
+  REPEAT
+    ImgOld := ImgOR(BI, BI);
+    BI := Thin(BI);
+  UNTIL ImgEquals(BI, ImgOld);
+  Skeleton := BI;
 end;
 
 end.
