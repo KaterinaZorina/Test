@@ -243,11 +243,11 @@ begin
 end;
 
 function Skeleton(BI: TBinaryImage): TBinaryImage;
-  function p(BI: TBinaryImage; r, c: word; ind: byte): boolean;
+  function p(BI: TBinaryImage; r, c: word; ind: byte): byte;
   var
-    res: boolean;
+    res: byte;
   begin
-    res := false;
+    res := 0;
     case ind of
     0: res := BI.img[r, c];
     1: res := BI.img[r - 1, c];
@@ -279,9 +279,9 @@ function Skeleton(BI: TBinaryImage): TBinaryImage;
   begin
     tmp := 0;
     for i := 1 to 7 do
-      if (not p(BI, r, c, i)) and (p(BI, r, c, i + 1)) then
+      if ( p(BI, r, c, i)=0) and (p(BI, r, c, i + 1)=1) then
         tmp := tmp + 1;
-    if (not p(BI, r, c, 8)) and (p(BI, r, c, 1)) then
+    if ( p(BI, r, c, 8)=0) and (p(BI, r, c, 1)=1) then
       tmp := tmp + 1;
     TransitionCount := tmp;
   end;
@@ -295,8 +295,8 @@ function Skeleton(BI: TBinaryImage): TBinaryImage;
     for i := 1 to BI.N do
       for j := 1 to BI.M do
         if BI.img[i, j]=1 then
-          if not(p(BI, i, j, 2) and p(BI, i, j, 3) and p(BI, i, j, 4) and p(BI, i, j, 5) and p(BI, i, j, 6) and p(BI, i, j, 7) and p(BI, i, j, 8)) then
-            BIR.img[i, j] := true;
+          if (p(BI, i, j, 2) and p(BI, i, j, 3) and p(BI, i, j, 4) and p(BI, i, j, 5) and p(BI, i, j, 6) and p(BI, i, j, 7) and p(BI, i, j, 8)=0) then
+            BIR.img[i, j] := 1;
     Kontur := BIR;
   end;
 
@@ -315,10 +315,10 @@ function Skeleton(BI: TBinaryImage): TBinaryImage;
           fl := true;
           fl := fl and (NeighbourCount(BIR, i, j) in [2 .. 6]);
           fl := fl and (TransitionCount(BIR, i, j) = 1);
-          fl := fl and ((p(BIR, i, j, 1) and p(BIR, i, j, 3) and p(BIR, i, j, 5)) = false);
-          fl := fl and ((p(BIR, i, j, 3) and p(BIR, i, j, 5) and p(BIR, i, j, 6)) = false);
+          fl := fl and ((p(BIR, i, j, 1) and p(BIR, i, j, 3) and p(BIR, i, j, 5)) = 0);
+          fl := fl and ((p(BIR, i, j, 3) and p(BIR, i, j, 5) and p(BIR, i, j, 6)) = 0);
           if fl then
-            NewBorder.img[i, j] := false;
+            NewBorder.img[i, j] := 0;
         end;
     for i := 1 to Border.N do
       for j := 1 to Border.M do
@@ -333,10 +333,10 @@ function Skeleton(BI: TBinaryImage): TBinaryImage;
           fl := true;
           fl := fl and (NeighbourCount(BIR, i, j) in [2 .. 6]);
           fl := fl and (TransitionCount(BIR, i, j) = 1);
-          fl := fl and ((p(BIR, i, j, 1) and p(BIR, i, j, 3) and p(BIR, i, j, 7)) = false);
-          fl := fl and ((p(BIR, i, j, 1) and p(BIR, i, j, 5) and p(BIR, i, j, 7)) = false);
+          fl := fl and ((p(BIR, i, j, 1) and p(BIR, i, j, 3) and p(BIR, i, j, 7)) = 0);
+          fl := fl and ((p(BIR, i, j, 1) and p(BIR, i, j, 5) and p(BIR, i, j, 7)) = 0);
           if fl then
-            NewBorder.img[i, j] := false;
+            NewBorder.img[i, j] := 0;
         end;
     for i := 1 to Border.N do
       for j := 1 to Border.M do

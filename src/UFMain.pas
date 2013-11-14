@@ -119,7 +119,7 @@ begin
       if MarkedImg.Img[sr + i - 2, sc + j - 2] <> 0 then // копируем объект в новую переменную
         BI.Img[i, j] := 1;
   UImages.CentreOfGravity(BI, r, c);
-
+  BI:=skeleton(BI);
   Sleep(1);
   BM := TBitMap.Create;
   BM.Height := BI.N;
