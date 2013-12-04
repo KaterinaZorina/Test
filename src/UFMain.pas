@@ -53,7 +53,7 @@ begin
   RGB := UImages.GetRGBImageFromFile(OPD.FileName);
   YIQ := UImages.ConvertRGBToYIQ(RGB);
   BI := UImages.ThresoldBinarization(YIQ.Y, YIQ.N, YIQ.M, strtoint(LEThresold.Text));
-  MarkedImg := MarkBinaryImage(BI, true, true);
+  MarkedImg := MarkBinaryImage(BI, true, true,1);
 
   BM := TBitMap.Create;
   BM.Height := MarkedImg.N;
@@ -94,6 +94,7 @@ var
   BI: UImages.TBinaryImage;
   BM: TBitMap;
   r, c: double;
+  LMarkedImage: Uimages.TMarkedImage;
 begin
   num := strtoint(LEMark.Text);
   sr := MarkedImg.N;
@@ -114,25 +115,51 @@ begin
           ec := j;
       end;
   UImages.InitBinaryImage(BI, er - sr + 1 + 2, ec - sc + 1 + 2); // переменная под вырезаемый объект на изображении
+  UImages.InitMarkedImage(LMarkedImage,er - sr + 1 + 2, ec - sc + 1 + 2 );
   for i := 2 to BI.N - 1 do
     for j := 2 to BI.M - 1 do
       if MarkedImg.Img[sr + i - 2, sc + j - 2] <> 0 then // копируем объект в новую переменную
+       begin
         BI.Img[i, j] := 1;
+       end;
   UImages.CentreOfGravity(BI, r, c);
-  BI:=skeleton(BI);
+ { BI:=skeleton(BI);}
   Sleep(1);
   BM := TBitMap.Create;
   BM.Height := BI.N;
   BM.Width := BI.M;
+  LMarkedImage:= MarkBinaryImage(BI, true, true,0);
   for i := 0 to BI.N - 1 do
     for j := 0 to BI.M - 1 do
-    begin
+    {begin
       if BI.Img[i + 1, j + 1] = 0 then
         BM.Canvas.Pixels[j, i] := clWhite
       else
         BM.Canvas.Pixels[j, i] := clBlack;
       if (round(r) = i + 1) or (round(c) = j + 1) then
         BM.Canvas.Pixels[j, i] := clRed;
+    end; }
+    begin
+      if LMarkedImage.Img[i + 1, j + 1] = 0 then
+        BM.Canvas.Pixels[j, i] := clWhite
+      else
+        case (LMarkedImage.Img[i + 1, j + 1] mod 15) + 1 { зачем mod 15 и +1? } of
+        1: BM.Canvas.Pixels[j, i] := clAqua;
+        2: BM.Canvas.Pixels[j, i] := clBlack;
+        3: BM.Canvas.Pixels[j, i] := clBlue;
+        4: BM.Canvas.Pixels[j, i] := clFuchsia;
+        5: BM.Canvas.Pixels[j, i] := clGray;
+        6: BM.Canvas.Pixels[j, i] := clGreen;
+        7: BM.Canvas.Pixels[j, i] := clLime;
+        8: BM.Canvas.Pixels[j, i] := clMaroon;
+        9: BM.Canvas.Pixels[j, i] := clNavy;
+        10: BM.Canvas.Pixels[j, i] := clOlive;
+        11: BM.Canvas.Pixels[j, i] := clPurple;
+        12: BM.Canvas.Pixels[j, i] := clRed;
+        13: BM.Canvas.Pixels[j, i] := clSilver;
+        14: BM.Canvas.Pixels[j, i] := clTeal;
+        15: BM.Canvas.Pixels[j, i] := clYellow;
+        end;
     end;
   IResult.Picture.Assign(BM);
   BM.Free;

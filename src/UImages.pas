@@ -31,7 +31,7 @@ procedure InitBinaryImage(var BinaryImg: TBinaryImage; N, M: word);
 function GetRGBImageFromFile(FileName: string): TRGBImage;
 function ConvertRGBToYIQ(RGBImg: TRGBImage): TYIQImage;
 function ThresoldBinarization(Plane: TPlane; N, M: word; Thresold: byte): TBinaryImage;
-function MarkBinaryImage(BI: TBinaryImage; hv, diag: boolean): TMarkedImage;
+function MarkBinaryImage(BI: TBinaryImage; hv, diag: boolean; obl:byte): TMarkedImage;
 function Skeleton(BI: TBinaryImage): TBinaryImage;
 procedure CentreOfGravity(BI: TBinaryImage; var row, col: double);
 
@@ -174,13 +174,13 @@ begin
   ThresoldBinarization := BinaryImg;
 end;
 
-function MarkBinaryImage(BI: TBinaryImage; hv, diag: boolean): TMarkedImage;
+function MarkBinaryImage(BI: TBinaryImage; hv, diag: boolean; obl: byte): TMarkedImage;
 var
   MarkedImg: TMarkedImage;
 
   procedure RecursiveMark(i, j, Mark: word);
   begin
-    if (i >= 1) and (i <= MarkedImg.N) and (j >= 1) and (j <= MarkedImg.M) and (MarkedImg.Img[i, j] = 1) then
+    if (i >= 1) and (i <= MarkedImg.N) and (j >= 1) and (j <= MarkedImg.M) and (MarkedImg.Img[i, j] = obl) then
     begin
       if hv then
       begin
@@ -211,14 +211,14 @@ begin
   Mark := 2;
   for i := 1 to MarkedImg.N do
     for j := 1 to MarkedImg.M do
-      if MarkedImg.Img[i, j] = 1 then
+      if MarkedImg.Img[i, j] = Obl then
       begin
         RecursiveMark(i, j, Mark);
         Mark := Mark + 1;
       end;
   for i := 1 to MarkedImg.N do
     for j := 1 to MarkedImg.M do
-      if MarkedImg.Img[i, j] > 1 then
+      if (MarkedImg.Img[i, j] > 1) and (obl=1) then
         MarkedImg.Img[i, j] := MarkedImg.Img[i, j] - 1;
   MarkBinaryImage := MarkedImg;
 end;
