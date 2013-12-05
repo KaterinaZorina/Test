@@ -41,7 +41,6 @@ uses
 var
   MarkedImg: TMarkedImage;
 
-  // Событие OnActivate выполняется в момент первой активации формы
 procedure TForm1.BMarkImageClick(Sender: TObject);
 var
   RGB: TRGBImage;
@@ -64,7 +63,7 @@ begin
       if MarkedImg.Img[i + 1, j + 1] = 0 then
         BM.Canvas.Pixels[j, i] := clWhite
       else
-        case (MarkedImg.Img[i + 1, j + 1] mod 15) + 1 { зачем mod 15 и +1? } of
+        case (MarkedImg.Img[i + 1, j + 1] mod 15) + 1 of
         1: BM.Canvas.Pixels[j, i] := clAqua;
         2: BM.Canvas.Pixels[j, i] := clBlack;
         3: BM.Canvas.Pixels[j, i] := clBlue;
@@ -114,16 +113,16 @@ begin
         if j > ec then
           ec := j;
       end;
-  UImages.InitBinaryImage(BI, er - sr + 1 + 2, ec - sc + 1 + 2); // переменная под вырезаемый объект на изображении
-  UImages.InitMarkedImage(LMarkedImage,er - sr + 1 + 2, ec - sc + 1 + 2 );
-  for i := 2 to BI.N - 1 do
-    for j := 2 to BI.M - 1 do
-      if MarkedImg.Img[sr + i - 2, sc + j - 2] <> 0 then // копируем объект в новую переменную
+  UImages.InitBinaryImage(BI, er - sr, ec - sc); // переменная под вырезаемый объект на изображении
+  UImages.InitMarkedImage(LMarkedImage,er - sr, ec - sc);
+  for i := 1 to BI.N  do
+    for j := 1 to BI.M  do
+      if MarkedImg.Img[sr + i , sc + j ] <> 0 then // копируем объект в новую переменную
        begin
         BI.Img[i, j] := 1;
        end;
   UImages.CentreOfGravity(BI, r, c);
- { BI:=skeleton(BI);}
+  //BI:=skeleton(BI);
   Sleep(1);
   BM := TBitMap.Create;
   BM.Height := BI.N;
@@ -143,7 +142,7 @@ begin
       if LMarkedImage.Img[i + 1, j + 1] = 0 then
         BM.Canvas.Pixels[j, i] := clWhite
       else
-        case (LMarkedImage.Img[i + 1, j + 1] mod 15) + 1 { зачем mod 15 и +1? } of
+        case (LMarkedImage.Img[i + 1, j + 1] mod 15) + 1 of
         1: BM.Canvas.Pixels[j, i] := clAqua;
         2: BM.Canvas.Pixels[j, i] := clBlack;
         3: BM.Canvas.Pixels[j, i] := clBlue;
