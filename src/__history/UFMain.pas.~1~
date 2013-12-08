@@ -16,8 +16,6 @@ type
     LEMark: TLabeledEdit;
     Label1: TLabel;
     Label2: TLabel;
-    Obj: TLabeledEdit;
-    CoG: TButton;
     procedure FormActivate(Sender: TObject);
     procedure IOriginDblClick(Sender: TObject);
     procedure BMarkImageClick(Sender: TObject);
@@ -89,7 +87,7 @@ end;
 
 procedure TForm1.BShowMarkClick(Sender: TObject);
 var
-  num, mark: word;
+  num: word;
   i, j: word;
   sr, er, sc, ec: word;
   BI: UImages.TBinaryImage;
@@ -123,14 +121,13 @@ begin
        begin
         BI.Img[i, j] := 1;
        end;
-
+  UImages.CentreOfGravity(BI, r, c);
   //BI:=skeleton(BI);
   Sleep(1);
   BM := TBitMap.Create;
   BM.Height := BI.N;
   BM.Width := BI.M;
   LMarkedImage:= MarkBinaryImage(BI, true, true,0);
-  UImages.CentreOfGravity(LMarkedImage, r, c,strtoint(Obj.Text));
   for i := 0 to BI.N - 1 do
     for j := 0 to BI.M - 1 do
     {begin
@@ -162,8 +159,6 @@ begin
         14: BM.Canvas.Pixels[j, i] := clTeal;
         15: BM.Canvas.Pixels[j, i] := clYellow;
         end;
-        if (round(r) = i + 1) or (round(c) = j + 1) then
-        BM.Canvas.Pixels[j, i] := clRed;
     end;
   IResult.Picture.Assign(BM);
   BM.Free;

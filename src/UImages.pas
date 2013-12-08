@@ -33,7 +33,7 @@ function ConvertRGBToYIQ(RGBImg: TRGBImage): TYIQImage;
 function ThresoldBinarization(Plane: TPlane; N, M: word; Thresold: byte): TBinaryImage;
 function MarkBinaryImage(BI: TBinaryImage; hv, diag: boolean; obl: byte): TMarkedImage;
 function Skeleton(BI: TBinaryImage): TBinaryImage;
-procedure CentreOfGravity(BI: TBinaryImage; var row, col: double);
+procedure CentreOfGravity(BI: TMarkedImage; var row, col: double; mark:byte);
 
 implementation
 
@@ -223,7 +223,7 @@ begin
   MarkBinaryImage := MarkedImg;
 end;
 
-procedure CentreOfGravity(BI: TBinaryImage; var row, col: double);
+procedure CentreOfGravity(BI: TMarkedImage; var row, col: double; mark:byte);
 var
   I, j: word;
   s: word;
@@ -234,9 +234,12 @@ begin
   for I := 1 to BI.N do
     for j := 1 to BI.M do
     begin
-      s := s + BI.Img[I, j];
-      row := row + I * BI.Img[I, j];
-      col := col + j * BI.Img[I, j];
+      if BI.Img[i,j]=mark then
+      begin
+      s := s + 1;
+      row := row + I;
+      col := col + j;
+      end;
     end;
   row := row / s;
   col := col / s;
